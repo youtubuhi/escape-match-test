@@ -1,0 +1,184 @@
+<!doctype html>
+<!--
+======================================================================
+방탈출 인간연구소 · TEST 003 UI TEST / 다음 테스트 참고용
+======================================================================
+
+[이 파일의 목적]
+- 실제 배포본을 직접 건드리기 전에 START / Q1~Q9 / RESULT1~RESULT8 화면을 빠르게 확인합니다.
+- 다음 테스트 제작 시 TEST 003의 UI 구조, 궁합 카드, 질문/결과 데이터 구조를 참고하는 템플릿입니다.
+- 오른쪽 아래 UI TEST 버튼은 검수용이며 실제 배포본에는 제거합니다.
+- UI TEST 모드에서는 GA 이벤트를 막아 테스트 데이터가 섞이지 않게 합니다.
+
+[구역 구분]
+1) [DESIGN]       색상, 글자 크기, 여백, 버튼, 질문/결과/궁합 이미지 크기
+2) [PAGE CONTENT] 시작/질문/결과/궁합/전체 유형 화면 구조와 카피
+3) [QUESTION DATA] 9개 질문, 선택지, 내부 축(EI/NS/TF), 이미지
+4) [RESULT DATA]   8개 결과명, 설명, 이미지, 찰떡/환장 연결
+5) [LOGIC]         3축 다수결 분류와 결과 프로필 표시
+6) [SHARE]         테스트/결과 공유
+7) [UI TEST ONLY]  START / Q1~Q9 / RESULT1~RESULT8 바로보기 도구
+
+[다음 테스트에서 안전하게 바꾸기 좋은 곳]
+- 시작 화면 제목/설명/메타/버튼 카피
+- QUESTIONS의 text / answers[].text / image
+- RESULTS의 name / emoji / image / one / example / analysis / closing
+- RESULTS의 good / bad (궁합 매칭)
+- CSS의 색상/폰트/여백/이미지 비율
+
+[주의해서 바꿀 곳]
+- QUESTIONS의 axis / answers[].pick
+- classify() / axisPercent()
+- TYPE_ORDER
+- 질문 수를 바꾸면 /09, step<9, 진행률 계산, UI TEST Q 버튼도 함께 수정
+
+[TEST 003 이미지 규칙]
+- 시작/OG: og-image.jpg
+- 질문: images/q1.jpg ~ images/q9.jpg
+- 결과: images/result1.jpg ~ images/result8.jpg
+
+[배포 시]
+- UI TEST 버튼/패널/CSS/HELPERS와 trackEvent=function(){} 오버라이드를 제거
+- GA는 실제 배포본에서만 활성화
+======================================================================
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>나랑 방탈출 잘 맞는 사람은? | 방탈출 궁합 테스트</title>
+<meta name="description" content="9개의 방탈출 상황으로 알아보는 나의 플레이 유형과 찰떡·환장 궁합.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="나랑 방탈출 잘 맞는 사람은? | 방탈출 인간연구소">
+<meta property="og:description" content="같은 방에 들어가도 즐기는 포인트는 다 다르다. 나의 방탈출 유형과 궁합을 확인해보세요.">
+<meta property="og:image" content="og-image.jpg">
+<meta property="og:site_name" content="방탈출 인간연구소">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root{--bg:#f5f1eb;--ink:#151515;--muted:#77716b;--line:#d9d1c8;--red:#b7202c;--soft:#f2dede}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}.hidden{display:none!important}button{font:inherit}
+.app{width:min(100%,760px);margin:auto;padding:12px 18px 58px}.brandbar{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13px;margin-bottom:8px}.testno{font-weight:500;color:#777;letter-spacing:.1em;font-size:12px}.rule{height:1px;background:var(--line);margin-bottom:10px}
+.start-image,.qimage,.result-image,.compat-img{background:linear-gradient(135deg,#e9e0d7,#f7f2ed);object-fit:cover}.start-image{width:100%;aspect-ratio:16/9;display:block;border:1px solid #ddd3cb;margin-bottom:22px}.kicker{font-size:13px;letter-spacing:.16em;color:var(--red);font-weight:900;margin-bottom:10px}h1{font-size:38px;line-height:1.08;margin:0 0 14px;letter-spacing:-.055em}.start-desc{font-size:17px;line-height:1.65;margin:0 0 18px}.meta{display:flex;gap:18px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:13px 0;margin:18px 0 20px;font-size:13px;color:#5e5954}.btn{width:100%;border-radius:16px;border:1px solid var(--line);padding:16px 18px;font-weight:800;cursor:pointer;margin-top:10px;background:#faf7f2;color:var(--ink)}.btn.primary{background:var(--red);border-color:var(--red);color:white}
+.quiz-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}.qnum{font-size:25px;font-weight:900;letter-spacing:-.05em}.qnum small{font-size:14px;font-weight:500;color:#59544f}.quiz-label{font-size:11px;letter-spacing:.14em;color:var(--red);font-weight:900}.progress{height:3px;background:#e4ddd5;margin:0 0 12px;overflow:hidden}.progress>div{height:100%;background:var(--red);transition:width .2s}.qimage{width:100%;aspect-ratio:16/8.2;display:block;border:1px solid #d6cec5;margin-bottom:14px}.question{font-size:20px;line-height:1.42;font-weight:850;letter-spacing:-.035em;margin-bottom:10px;white-space:pre-line}.answers{border-top:1px solid var(--line)}.answer{width:100%;display:grid;grid-template-columns:38px 1fr;gap:7px;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:13px 2px 13px 0;cursor:pointer;color:var(--ink)}.answer-no{color:var(--red);font-size:13px;font-weight:900;padding-top:2px}.answer-text{white-space:pre-line;font-size:14.5px;line-height:1.45;letter-spacing:-.02em}.answer:hover{background:#efe9e2}.labfoot{text-align:center;color:#aaa19a;letter-spacing:.12em;font-size:10px;margin-top:18px}
+.result-image{display:block;width:min(100%,360px);aspect-ratio:3/4;margin:0 auto 24px;border:1px solid #d3cbc2}.result-kicker{font-size:12px;letter-spacing:.16em;color:#777;margin-bottom:10px}.result-title{font-size:32px;line-height:1.12;margin:0 0 8px;letter-spacing:-.05em}.result-one{font-size:17px;line-height:1.58;color:#45413d;margin:0 0 18px}.profile{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0;margin:16px 0 22px}.score{margin:12px 0}.score-top{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px}.score-top strong{font-size:17px}.meter{height:7px;background:#ded7cf;overflow:hidden}.fill{height:100%;background:var(--red)}.example{background:var(--soft);border-radius:18px;padding:18px 20px;font-size:16px;line-height:1.65;margin:22px 0 28px;white-space:pre-line}.section-title{font-size:16px;font-weight:900;margin:0 0 16px}.analysis p{font-size:16.5px;line-height:1.78;margin:0 0 22px;letter-spacing:-.02em}.closing{font-weight:800}
+.compat-wrap{border-top:1px solid var(--line);margin-top:30px;padding-top:24px}.compat-title{font-size:20px;font-weight:900;margin:0 0 5px}.compat-sub{font-size:13px;color:var(--muted);margin:0 0 18px}.compat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.compat-card{text-align:center}.compat-label{font-size:13px;font-weight:900;margin-bottom:8px}.compat-img{width:100%;aspect-ratio:1/1;display:block;border:1px solid var(--line);margin-bottom:10px}.compat-name{font-size:14px;line-height:1.35;font-weight:900}.good .compat-label{color:var(--red)}.bad .compat-label{color:#4e4945}
+.share-actions{border-top:1px solid var(--line);padding-top:18px;margin-top:30px}.types-wrap{border-top:1px solid var(--line);margin-top:34px;padding-top:26px}.types-title{font-size:20px;font-weight:900;margin:0 0 5px}.types-sub{font-size:13px;color:var(--muted);margin:0 0 18px}.types-grid{display:grid;grid-template-columns:1fr;gap:0;border-top:1px solid var(--line)}.type-card{border:0;border-bottom:1px solid var(--line);background:transparent;padding:0;cursor:pointer;text-align:left}.type-card-name{display:block;padding:14px 2px;font-weight:900;font-size:15px}.type-card:hover{background:#efe9e2}.type-detail-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.back-link{border:0;background:none;color:var(--red);font-weight:800;padding:0;cursor:pointer}.instagram-follow{display:flex;align-items:center;justify-content:center;gap:13px;margin-top:14px;padding:18px 10px;color:#151515;text-decoration:none;border-top:1px solid var(--line)}.instagram-follow svg{width:30px;height:30px;color:var(--red)}.instagram-follow span{display:flex;flex-direction:column;gap:3px}.instagram-follow strong{font-size:14px}.instagram-follow small{font-size:11px;color:var(--muted)}
+@media(max-width:520px){.app{padding:10px 14px 56px}h1{font-size:35px}.start-desc{font-size:16px}.qnum{font-size:24px}.question{font-size:19px}.answer{grid-template-columns:34px 1fr;padding:12px 1px 12px 0}.answer-text{font-size:13.8px}.result-title{font-size:30px}.analysis p{font-size:16px;line-height:1.72}.compat-grid{gap:9px}.compat-name{font-size:13px}}
+
+/* [UI TEST ONLY · DESIGN] 실제 배포본에는 불필요 */
+.ui-test-toggle{position:fixed;right:12px;bottom:12px;z-index:9999;border:0;border-radius:999px;background:#151515;color:#fff;padding:10px 14px;font-size:12px;font-weight:800;box-shadow:0 4px 16px rgba(0,0,0,.18);cursor:pointer}
+.ui-test-panel{position:fixed;left:10px;right:10px;bottom:10px;z-index:9998;background:rgba(250,247,242,.97);border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.14);backdrop-filter:blur(8px)}
+.ui-test-panel.hidden-panel{display:none}.ui-test-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;font-size:12px;font-weight:900;color:var(--red)}
+.ui-test-close{border:0;background:transparent;font-weight:900;cursor:pointer;color:var(--ink)}.ui-test-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.ui-test-row::-webkit-scrollbar{display:none}
+.ui-test-chip{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:800;color:var(--ink);cursor:pointer}.ui-test-chip.primary{background:var(--red);border-color:var(--red);color:#fff}
+@media(max-width:520px){.ui-test-panel{left:8px;right:8px;bottom:8px}.ui-test-chip{padding:7px 9px}}
+</style>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3GZCCYZ8W0"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-3GZCCYZ8W0',{anonymize_ip:true});</script>
+</head>
+<body>
+<!-- [UI TEST ONLY] 오른쪽 아래 검수 패널 -->
+<button id="uiTestToggle" class="ui-test-toggle" type="button" onclick="toggleUiTestPanel()">UI TEST</button>
+<div id="uiTestPanel" class="ui-test-panel hidden-panel">
+  <div class="ui-test-head"><span>TEST 003 · UI TEST · 실제 배포용 아님</span><button class="ui-test-close" type="button" onclick="toggleUiTestPanel(false)">닫기 ×</button></div>
+  <div class="ui-test-row" style="margin-bottom:6px">
+    <button class="ui-test-chip primary" type="button" onclick="showTestStart()">START</button>
+    <button class="ui-test-chip" type="button" onclick="showTestQuestion(1)">Q1</button><button class="ui-test-chip" type="button" onclick="showTestQuestion(2)">Q2</button><button class="ui-test-chip" type="button" onclick="showTestQuestion(3)">Q3</button><button class="ui-test-chip" type="button" onclick="showTestQuestion(4)">Q4</button><button class="ui-test-chip" type="button" onclick="showTestQuestion(5)">Q5</button><button class="ui-test-chip" type="button" onclick="showTestQuestion(6)">Q6</button><button class="ui-test-chip" type="button" onclick="showTestQuestion(7)">Q7</button><button class="ui-test-chip" type="button" onclick="showTestQuestion(8)">Q8</button><button class="ui-test-chip" type="button" onclick="showTestQuestion(9)">Q9</button>
+  </div>
+  <div class="ui-test-row">
+    <button class="ui-test-chip" type="button" onclick="showTestResult(1)">RESULT1</button><button class="ui-test-chip" type="button" onclick="showTestResult(2)">RESULT2</button><button class="ui-test-chip" type="button" onclick="showTestResult(3)">RESULT3</button><button class="ui-test-chip" type="button" onclick="showTestResult(4)">RESULT4</button><button class="ui-test-chip" type="button" onclick="showTestResult(5)">RESULT5</button><button class="ui-test-chip" type="button" onclick="showTestResult(6)">RESULT6</button><button class="ui-test-chip" type="button" onclick="showTestResult(7)">RESULT7</button><button class="ui-test-chip" type="button" onclick="showTestResult(8)">RESULT8</button>
+  </div>
+</div>
+
+<!-- [PAGE CONTENT] 실제 화면 구조 -->
+<div class="app">
+<div class="brandbar"><span>방탈출 인간연구소</span><span class="testno">TEST 003</span></div><div class="rule"></div>
+<section id="start">
+<img class="start-image" src="og-image.jpg" alt="방탈출 궁합 테스트" onerror="this.removeAttribute('src')">
+<div class="kicker">ESCAPE CHEMISTRY CHECK</div><h1>나랑 방탈출 잘 맞는 사람은?</h1>
+<p class="start-desc">같은 방에 들어가도 꽂히는 포인트는 다 다릅니다. 9개의 상황에서 가장 나다운 행동을 고르고, 나의 플레이 유형과 찰떡·환장 궁합을 확인해보세요.</p>
+<div class="meta"><span>9문항</span><span>약 1분</span><span>결과 8종</span></div>
+<button class="btn primary" onclick="begin()">테스트 시작</button><button class="btn" onclick="shareTest()">친구에게 테스트 공유하기</button><button class="btn" onclick="location.href='https://youtubuhi.github.io/escape-player-lab/'">다른 테스트 하러 가기</button>
+<a href="https://www.instagram.com/escapeplayerlab/" target="_blank" rel="noopener noreferrer" class="instagram-follow" onclick="trackEvent('instagram_follow_click',{page:'start'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle></svg><span><strong>방탈출 인간연구소 팔로우하기</strong><small>매주 새로운 테스트 소식 받기</small></span></a>
+</section>
+<section id="quiz" class="hidden"><div class="quiz-head"><div id="qnum" class="qnum"></div><div class="quiz-label">PLAYER CHECK</div></div><div class="progress"><div id="bar"></div></div><img id="qimage" class="qimage" alt="" onerror="this.removeAttribute('src')"><div id="question" class="question"></div><div id="answers" class="answers"></div><div class="labfoot">ESCAPE PLAYER LAB · 방탈출 인간연구소</div></section>
+<section id="result" class="hidden"><img id="resultImage" class="result-image" alt="" onerror="this.removeAttribute('src')"><div class="result-kicker">방탈출 인간연구소 · RESULT</div><h2 id="resultTitle" class="result-title"></h2><p id="resultOne" class="result-one"></p><div id="profile" class="profile"></div><div id="example" class="example"></div><div class="section-title">유형 분석</div><div id="analysis" class="analysis"></div>
+<div class="compat-wrap"><h3 class="compat-title">방탈출 궁합</h3><p class="compat-sub">같이 들어가면 유독 잘 맞는 사람, 이상하게 엇갈리는 사람.</p><div class="compat-grid"><div class="compat-card good"><div class="compat-label">♥ 찰떡궁합!</div><img id="goodImg" class="compat-img" alt="" onerror="this.removeAttribute('src')"><div id="goodName" class="compat-name"></div></div><div class="compat-card bad"><div class="compat-label">⚡ 환장궁합!</div><img id="badImg" class="compat-img" alt="" onerror="this.removeAttribute('src')"><div id="badName" class="compat-name"></div></div></div></div>
+<div class="share-actions"><button class="btn primary" onclick="shareResultCard()">내 결과 공유하기</button><button class="btn" onclick="shareTest()">테스트 공유하기</button><button class="btn" onclick="resetTest()">테스트 다시 하기</button><button class="btn" onclick="location.href='https://youtubuhi.github.io/escape-player-lab/'">다른 테스트 하러 가기</button></div>
+<div class="types-wrap"><h3 class="types-title">전체 유형 보기</h3><p class="types-sub">친구 결과가 궁금하다면 다른 유형도 눌러보세요.</p><div id="typesGrid" class="types-grid"></div></div></section>
+<section id="typeDetail" class="hidden"><div class="type-detail-head"><div class="result-kicker">방탈출 인간연구소 · TYPE</div><button class="back-link" onclick="backToMyResult()">← 내 결과로 돌아가기</button></div><img id="typeImage" class="result-image" alt="" onerror="this.removeAttribute('src')"><h2 id="typeTitle" class="result-title"></h2><p id="typeOne" class="result-one"></p><div id="typeExample" class="example"></div><div class="section-title">유형 분석</div><div id="typeAnalysis" class="analysis"></div><button class="btn" onclick="backToMyResult()">내 결과로 돌아가기</button></section>
+</div>
+<script>
+/* [TEST SETTINGS] 분석/이벤트 식별용 */
+const TEST_ID='003';
+/* [QUESTION DATA] text/answers/image는 안전하게 수정. axis/pick은 결과 로직에 영향 */
+const QUESTIONS=[
+{id:0,axis:'EI',image:'images/q1.jpg',text:'문이 열리자 기다리고 있던 NPC가 당신과 정확히 눈을 마주친다.\n“드디어 오셨군요. 절 기억하시겠어요?”',answers:[{text:'“……제가 많이 늦었죠?”\n일단 받아친다. 설정은 지금부터 알아가면 됨.',pick:'E'},{text:'친구부터 쳐다본다.\n👀 ‘쟤가 왜 나한테 물어봐?’',pick:'I'}]},
+{id:1,axis:'EI',image:'images/q2.jpg',text:'다 같이 5분째 문제를 쳐다보던 중, 갑자기 말도 안 되는 가설 하나가 머리를 스친다.',answers:[{text:'“야 잠깐만. 개소리일 수도 있는데 들어봐.”\n일단 입 밖으로 꺼내고 본다.',pick:'E'},{text:'일단 혼자 해본다.\n틀린 개소리였으면 아무도 모르게 묻어버릴 수 있다.',pick:'I'}]},
+{id:2,axis:'EI',image:'images/q3.jpg',text:'NPC가 어두운 문을 열더니 말한다.\n“여기서 한 분만 저와 함께 가셔야 합니다.”',answers:[{text:'“제가 갈게요.”\n뭔지는 모르겠지만 남들 안 하는 거면 일단 재밌어 보임.',pick:'E'},{text:'갑자기 벽지가 굉장히 흥미로워진다.\n누군가 자원할 때까지 NPC와 눈을 마주치지 않는다.',pick:'I'}]},
+{id:3,axis:'NS',image:'images/q4.jpg',text:'낡은 가족사진을 발견했다. 그런데 한 사람의 얼굴만 칼로 긁어놓은 것처럼 지워져 있다.',answers:[{text:'“잠깐, 설마 얘가 아까 걔야?”\n벌써 등장인물 족보 만들기 시작함.',pick:'N'},{text:'사진 뒤집음. 액자 봄. 모서리 봄.\n사연은 모르겠고 일단 뭐가 숨겨져 있을 것 같음.',pick:'S'}]},
+{id:4,axis:'NS',image:'images/q5.jpg',text:'문이 열리자 오래된 아이방이 나온다. 낡은 인형, 작은 침대, 벽에 그려진 가족 그림… 분위기가 심상치 않다.',answers:[{text:'“아…… 여기 혹시 그 애 방인가?”\n아직 아무도 설명 안 해줬는데 혼자 서사 시작됨.',pick:'N'},{text:'“인형 하나, 액자 두 개, 서랍 세 개.”\n들어온 지 4초 만에 수색 들어감.',pick:'S'}]},
+{id:5,axis:'NS',image:'images/q6.jpg',text:'두꺼운 일기장을 펼쳤더니 글이 빼곡하다. 중간중간 몇몇 글자에는 이상하게 동그라미가 쳐져 있다.',answers:[{text:'첫 페이지부터 읽는다.\n남의 일기 훔쳐보는 데 갑자기 누구보다 진심.',pick:'N'},{text:'동그라미 친 글자부터 모은다.\n죄송하지만 당신의 인생보다 비밀번호가 급합니다.',pick:'S'}]},
+{id:6,axis:'TF',image:'images/q7.jpg',text:'오래된 카세트테이프에서 어린아이의 목소리가 들린다.\n“아빠가 이걸 듣고 있다면… 나는 아마 집에 돌아가지 못했겠지. 이제는 나 기다리지 말고 행복했으면 좋겠어.”\n그리고 녹음은 아직 한참 남아 있다.',answers:[{text:'슬픈 건 알겠는데 슬슬 손이 근질거린다.\n‘그래서 이거 끝나면 뭐 열리는 거지?’ 문제 풀고 싶어서 기다리는 중.',pick:'T'},{text:'아이고……ㅠㅠ\n어느 순간부터 진짜 딸의 유언 듣는 사람처럼 조용히 끝까지 몰입해서 듣고 있다.',pick:'F'}]},
+{id:7,axis:'TF',image:'images/q8.jpg',text:'마지막 코드를 입력하자 《ACCESS GRANTED》. 철문이 천천히 열리고 빨간 조명과 함께 기계들이 작동한다. BGM까지 웅장하게 터진다.',answers:[{text:'“와, 연출 좋다.”\n그리고 문이 30cm쯤 열린 순간부터 안쪽에 있는 문제 개수 세고 있음.',pick:'T'},{text:'“와!!!!! 미친!!!!! 열린다 열린다!!!!”\n친구 팔 붙잡고 방방 뛰는 중. 아직 아무것도 안 했는데 이미 클라이맥스임.',pick:'F'}]},
+{id:8,axis:'TF',image:'images/q9.jpg',text:'테마 내내 무전으로 당신들을 도와주던 NPC. 처음엔 수상했지만 위험할 때마다 도와줘서 어느새 꽤 정들었다. 마지막 문 앞에서 말한다.\n“여기부터는 같이 갈 수 없어요. 여러분끼리 가셔야 합니다.”',answers:[{text:'“아… 여기서 헤어지는구나.”\n스토리는 이해했는데 동시에 ‘그럼 이제 무전기는 필요 없는 건가?’ 생각 중.',pick:'T'},{text:'“왜요???? 같이 가요ㅠㅠ”\n60분 전에 처음 만난 사람한테 벌써 정들었음.',pick:'F'}]}
+];
+/* [RESULT DATA] 8유형 콘텐츠 + good/bad 궁합 매칭 */
+const RESULTS={
+IST:{name:'인간 공학용 계산기형',emoji:'🧮',image:'images/result1.jpg',one:'감동적인 건 알겠는데… 저 숫자 규칙 너무 예쁜데?',example:'NPC: “그날 이후로 저는 매일 이곳에서 기다렸어요….”\n당신: (끄덕끄덕)\n당신 머릿속: ‘근데 뒤에 3 7 2 9는 뭐지?’',analysis:['문제가 등장하는 순간 눈빛이 달라집니다. 숫자, 도형, 배열, 규칙처럼 명확하게 답을 찾아가는 문제에서 가장 큰 재미를 느끼는 타입입니다. 복잡해 보이던 정보가 하나의 답으로 딱 떨어지는 순간이 방탈출의 하이라이트입니다.','스토리도 보고 NPC의 말도 잘 듣습니다. 다만 다른 사람이 슬픈 사연에 빠져 있는 동안 뒤 벽의 숫자 배열이 자꾸 눈에 들어올 뿐입니다. 필요한 정보는 당연히 공유하지만, 생각이 완성되기 전까지 혼자 머릿속에서 굴리는 시간이 조금 필요한 편입니다.'],closing:'심장이 없는 게 아닙니다. 뇌가 너무 바쁠 뿐입니다.',good:'EST',bad:'ENF'},
+ISF:{name:'조용한 팀원 수호자형',emoji:'🛡️',image:'images/result2.jpg',one:'말없이 하고 있었는데 필요한 건 다 해놨습니다.',example:'“아까 그 열쇠 어디 있지?”\n“사용한 거라 저쪽에 따로 놔뒀어.”\n“…언제?”\n“아까.”',analysis:['새로운 공간이 열리면 차근차근 주변을 살펴봅니다. 눈앞의 단서와 문제를 꼼꼼하게 확인하면서도 팀이 지금 어떻게 움직이고 있는지 은근히 잘 보고 있는 타입입니다.','발견한 건 공유하고, 사용한 물건은 헷갈리지 않게 정리하고, 다른 사람이 놓친 부분이 있으면 자연스럽게 보완합니다. 크게 지휘하지 않아도 플레이가 안정적으로 굴러가는 데 기여하는 사람입니다.'],closing:'화려하게 튀진 않아도 같이 가면 은근히 든든합니다.',good:'ESF',bad:'ENT'},
+INT:{name:'떡밥 해부 연구원형',emoji:'🔬',image:'images/result3.jpg',one:'이거 문제 단서가 아니라 스토리 단서 같은데?',example:'팀원: “그건 그냥 사진 아니야?”\n당신: “근데 굳이 이 사람만 얼굴이 가려져 있잖아.”\n20분 뒤: “…거봐.”',analysis:['눈앞의 문제만큼이나 테마 전체에 깔려 있는 구조가 궁금합니다. 처음 방의 사진, 이상하게 반복되는 이름, 별 의미 없어 보였던 문장까지 일단 머릿속 어딘가에 저장됩니다.','이 사람에게 세계관은 감정적으로 빠져드는 이야기이면서도 분석하고 연결하는 거대한 퍼즐에 가깝습니다. 제작자가 숨겨둔 복선까지 알아챘을 때 만족도가 급상승합니다.'],closing:'테마가 끝나기 전에 제작자의 복선 회수 여부부터 검사합니다.',good:'ENT',bad:'ESF'},
+INF:{name:'세계관 자진입주자형',emoji:'🕯️',image:'images/result4.jpg',one:'예약한 건 60분인데 마음은 아직 거기 있습니다.',example:'직원: “수고하셨습니다!”\n당신: “감사합니다!”\n밖에 나온 지 20분 후: “근데 생각해보니까 마지막에 걔가 한 말 있잖아….”',analysis:['세계관이 취향에 맞는 순간 60분 동안 잠깐 다른 인생을 살다 나옵니다. 편지 한 장도 등장인물이 실제로 남긴 것처럼 읽고, 초반의 대사가 엔딩에서 다시 나오면 혼자 소름 돋습니다.','NPC와 상호작용할 때도 설정을 깨기보다 상대가 만들어주는 상황을 진지하게 받아들이는 편입니다. 특히 감정선과 복선이 같이 터지는 테마를 만나면 끝난 뒤에도 한동안 여운이 이어집니다.'],closing:'탈출은 했는데 아직 세계관에서는 퇴실하지 못했습니다.',good:'ENF',bad:'EST'},
+EST:{name:'탈출 현장 지휘관형',emoji:'📋',image:'images/result5.jpg',one:'오케이, 이거 찾았고. 저거 아직 안 풀렸지?',example:'“와 미쳤다 여기 열린다!”\n“대박.”\n“오케이 대박이고, 일단 들어가자.”',analysis:['새로운 방이 열리면 자연스럽게 현재 상황부터 파악합니다. 나온 문제가 몇 개인지, 아직 안 본 곳은 어딘지, 지금 누가 뭘 하고 있는지가 빠르게 눈에 들어옵니다.','본인이 반드시 모든 문제를 풀어야 하는 건 아닙니다. 중요한 건 팀 전체가 안 멈추는 것. 특히 제한시간이 얼마 안 남으면 갑자기 프로젝트 마감 직전 팀장 모드가 켜집니다.'],closing:'누가 시키지 않았는데 어느새 진행 담당이 되어 있습니다.',good:'IST',bad:'INF'},
+ESF:{name:'방탈출 리액션 요정형',emoji:'🎉',image:'images/result6.jpg',one:'문제를 얼마나 풀었는지는 모르겠고 일단 제일 재밌어 보입니다.',example:'철컥—쾅!\n“와!!!!! 미쳤다!!!!!”\n팀원: “너 때문에 나도 더 놀랐잖아ㅋㅋㅋ”',analysis:['방탈출의 재미를 같이 온 사람들과 200% 증폭시키는 타입입니다. 장치가 터지면 감탄하고, 친구가 문제를 풀면 같이 좋아하고, 예상 못 한 연출이 나오면 리액션이 바로 나옵니다.','세계관 복선을 하나하나 분석하지 않아도 충분히 잘 즐깁니다. 세 달 뒤 스토리 세부사항은 까먹어도 “그때 네가 놀라서 뒤로 자빠질 뻔한 거”는 정확히 기억할 가능성이 높습니다.'],closing:'같이 간 사람의 체감 연출력을 한 단계 올려주는 타입입니다.',good:'ISF',bad:'INT'},
+ENT:{name:'브레인스토밍 폭주기관차형',emoji:'🚂',image:'images/result7.jpg',one:'잠깐, 나 지금 생각난 거 있는데.',example:'“야 이거 아까 그 그림이랑 연결되는 것 같은데?”\n“어떻게?”\n“잠깐만. 지금부터 생각해볼게.”',analysis:['단서 하나를 발견하면 머릿속에서 연결고리가 빠르게 생깁니다. 혼자 완성할 때까지 기다리기보다 일단 팀원들에게 던져놓고 같이 굴리는 타입입니다.','가설을 입 밖으로 꺼내면서 생각하기 때문에 팀이 막혀 있을 때 새로운 방향을 만드는 데 강합니다. 누군가 자기 아이디어에 다른 의견을 얹으면 또 거기서 새로운 생각이 튀어나옵니다.'],closing:'열 개 던져 하나 맞아도 그 하나로 팀을 앞으로 보냅니다.',good:'INT',bad:'ISF'},
+ENF:{name:'세계관 핵인싸형',emoji:'🌎',image:'images/result8.jpg',one:'처음 들어온 세계관인데 왜 당신만 현지인 같죠?',example:'NPC: “드디어 왔군. 기다리고 있었다.”\n당신: “늦어서 죄송해요. 무슨 일이 있었어요?”\n팀원: (옆에서 슬슬 같이 몰입되기 시작함)',analysis:['NPC가 말을 걸면 상황을 바로 받아들이고, 설정 하나를 던져주면 자연스럽게 그 안에서 반응합니다. 갑자기 이름 하나를 붙여줘도 어느 순간부터 본인도 원래 그 이름이었던 것처럼 행동합니다.','상대가 만들어준 판을 누구보다 잘 받아주는 플레이어에 가깝습니다. 슬픈 이야기를 하면 진심으로 안타까워하고, 수상한 인물이 나타나면 제대로 의심합니다. 그리고 이 반응을 팀원들과 주고받으며 같이 세계관에 들어갑니다.'],closing:'60분짜리 테마인데 혼자 여기 3년 산 사람처럼 행동합니다.',good:'INF',bad:'IST'}
+};
+/* [LOGIC] 내부 코드는 화면에 노출하지 않음. 순서/분류 수정 시 검토 필요 */
+const TYPE_ORDER=['IST','ISF','INT','INF','EST','ESF','ENT','ENF'];let order=[],step=0,choices={},myType=null;
+function trackEvent(name,params={}){if(typeof gtag==='function')gtag('event',name,{test_id:TEST_ID,...params})}function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}function cleanUrl(){return `${location.origin}${location.pathname}`}
+function begin(){history.replaceState(null,'',location.pathname);trackEvent('test_start');order=shuffle(QUESTIONS);step=0;choices={};myType=null;start.classList.add('hidden');result.classList.add('hidden');typeDetail.classList.add('hidden');quiz.classList.remove('hidden');render();scrollTo(0,0)}
+function render(){const q=order[step];qnum.innerHTML=`${String(step+1).padStart(2,'0')}<small> /09</small>`;bar.style.width=`${step/9*100}%`;qimage.src=q.image;question.textContent=q.text;answers.innerHTML='';shuffle(q.answers).forEach((a,i)=>{const b=document.createElement('button');b.className='answer';b.innerHTML=`<span class="answer-no">${String(i+1).padStart(2,'0')}</span><span class="answer-text"></span>`;b.querySelector('.answer-text').textContent=a.text;b.onclick=()=>choose(q.id,a.pick);answers.appendChild(b)})}
+function choose(id,pick){choices[id]=pick;step++;if(step<9)render();else finish()}
+function classify(){const counts={E:0,I:0,N:0,S:0,T:0,F:0};Object.values(choices).forEach(x=>counts[x]++);return `${counts.E>counts.I?'E':'I'}${counts.N>counts.S?'N':'S'}${counts.T>counts.F?'T':'F'}`}
+function axisPercent(a,b){const vals=Object.values(choices);const n=vals.filter(x=>x===a).length;return Math.round(18+(n/3)*64)}
+function renderProfile(){const rows=[['반응이 밖으로 나오는 편',axisPercent('E','I')],['세계관에 빠지는 편',axisPercent('N','S')],['감정 반응이 큰 편',axisPercent('F','T')]];profile.innerHTML=rows.map(([n,v])=>`<div class="score"><div class="score-top"><span>${n}</span><strong>${v}</strong></div><div class="meter"><div class="fill" style="width:${v}%"></div></div></div>`).join('')}
+function fillAnalysis(target,r){target.innerHTML=r.analysis.map(x=>`<p>${x}</p>`).join('')+`<p class="closing">${r.closing}</p>`}
+function finish(){quiz.classList.add('hidden');start.classList.add('hidden');typeDetail.classList.add('hidden');result.classList.remove('hidden');myType=classify();const r=RESULTS[myType];trackEvent('test_complete',{result_type:r.name});resultImage.src=r.image;resultTitle.textContent=`${r.emoji} ${r.name}`;resultOne.textContent=r.one;example.textContent=r.example;fillAnalysis(analysis,r);renderProfile();const g=RESULTS[r.good],b=RESULTS[r.bad];goodImg.src=g.image;goodName.textContent=`${g.emoji} ${g.name}`;badImg.src=b.image;badName.textContent=`${b.emoji} ${b.name}`;renderTypeGrid();scrollTo({top:0,behavior:'smooth'})}
+function renderTypeGrid(){typesGrid.innerHTML='';TYPE_ORDER.forEach(k=>{const r=RESULTS[k],b=document.createElement('button');b.className='type-card';b.innerHTML=`<span class="type-card-name">${r.emoji} ${r.name}</span>`;b.onclick=()=>showType(k);typesGrid.appendChild(b)})}
+function showType(k){const r=RESULTS[k];result.classList.add('hidden');typeDetail.classList.remove('hidden');typeImage.src=r.image;typeTitle.textContent=`${r.emoji} ${r.name}`;typeOne.textContent=r.one;typeExample.textContent=r.example;fillAnalysis(typeAnalysis,r);scrollTo({top:0,behavior:'smooth'})}function backToMyResult(){typeDetail.classList.add('hidden');result.classList.remove('hidden');scrollTo({top:0,behavior:'smooth'})}
+/* [SHARE] 테스트/결과 공유 */
+async function sharePayload(title,text,url){if(navigator.share){try{await navigator.share({title,text,url});return}catch(e){}}try{await navigator.clipboard.writeText([text,url].filter(Boolean).join('\n'));alert('공유 링크를 복사했어요.')}catch(e){}}async function shareTest(){trackEvent('test_share');await sharePayload('방탈출 궁합 테스트','나랑 방탈출 잘 맞는 사람은?',cleanUrl())}
+async function shareResultCard(){const r=RESULTS[myType];trackEvent('result_share',{result_type:r.name});await sharePayload(`${r.emoji} ${r.name}`,`내 방탈출 유형은 ${r.name}! 너도 해봐 👀`,cleanUrl())}function resetTest(){history.replaceState(null,'',location.pathname);result.classList.add('hidden');typeDetail.classList.add('hidden');quiz.classList.add('hidden');start.classList.remove('hidden');choices={};myType=null;scrollTo({top:0,behavior:'smooth'})}
+window.addEventListener('load',()=>trackEvent('test_page_view',{page_location:location.href,page_title:document.title}));
+</script>
+<script>
+/* ==================================================================
+   [UI TEST ONLY]
+   START / Q1~Q9 / RESULT1~RESULT8을 강제로 보여주는 검수 도구.
+   실제 배포본에는 이 블록과 UI TEST 패널/CSS를 넣지 않습니다.
+   ================================================================== */
+function toggleUiTestPanel(force){
+  const p=document.getElementById('uiTestPanel');
+  if(typeof force==='boolean')p.classList.toggle('hidden-panel',!force);
+  else p.classList.toggle('hidden-panel');
+}
+function hideAllTestSections(){['start','quiz','result','typeDetail'].forEach(id=>document.getElementById(id)?.classList.add('hidden'))}
+function showTestStart(){hideAllTestSections();document.getElementById('start').classList.remove('hidden');window.scrollTo(0,0)}
+function showTestQuestion(n){
+  const q=QUESTIONS[n-1];if(!q)return;hideAllTestSections();document.getElementById('quiz').classList.remove('hidden');
+  qnum.innerHTML=`${String(n).padStart(2,'0')}<small> /09</small>`;bar.style.width=`${(n-1)/9*100}%`;qimage.src=q.image;question.textContent=q.text;answers.innerHTML='';
+  q.answers.forEach((a,i)=>{const b=document.createElement('button');b.className='answer';b.type='button';b.innerHTML=`<span class="answer-no">${String(i+1).padStart(2,'0')}</span><span class="answer-text"></span>`;b.querySelector('.answer-text').textContent=a.text;b.onclick=()=>{};answers.appendChild(b)});window.scrollTo(0,0)
+}
+function uiTestChoicesFor(type){
+  const picks={0:type[0],1:type[0],2:type[0],3:type[1],4:type[1],5:type[1],6:type[2],7:type[2],8:type[2]};return picks
+}
+function showTestResult(n){
+  const type=TYPE_ORDER[n-1],r=RESULTS[type];if(!r)return;hideAllTestSections();document.getElementById('result').classList.remove('hidden');myType=type;choices=uiTestChoicesFor(type);
+  resultImage.src=r.image;resultTitle.textContent=`${r.emoji} ${r.name}`;resultOne.textContent=r.one;example.textContent=r.example;fillAnalysis(analysis,r);renderProfile();
+  const g=RESULTS[r.good],b=RESULTS[r.bad];goodImg.src=g.image;goodName.textContent=`${g.emoji} ${g.name}`;badImg.src=b.image;badName.textContent=`${b.emoji} ${b.name}`;renderTypeGrid();window.scrollTo(0,0)
+}
+// UI 검수 파일에서는 실제 Analytics 이벤트를 보내지 않음
+trackEvent=function(){};
+</script>
+</body></html>
