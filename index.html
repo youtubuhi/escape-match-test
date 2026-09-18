@@ -113,7 +113,7 @@ function showType(k){const r=RESULTS[k];result.classList.add('hidden');typeDetai
 /* ==================== 공유 부분 ==================== */
 /* 테스트 공유 / 결과 공유 기능 */
 async function sharePayload(title,text,url){if(navigator.share){try{await navigator.share({title,text,url});return}catch(e){}}try{await navigator.clipboard.writeText([text,url].filter(Boolean).join("\n"));alert("공유 링크를 복사했어요.")}catch(e){}}
-async function shareTest(){trackEvent("test_share");await sharePayload("방탈출 궁합 테스트","나랑 방탈출 잘 맞는 사람은?",cleanUrl())}
+async function shareTest(){trackEvent("test_share");await sharePayload("","",cleanUrl())}
 
 async function loadImage(src){return new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src})}
 
