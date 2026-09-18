@@ -296,16 +296,19 @@ async function makeShareCanvas(){
   ctx.fillStyle="#4e4945";
   ctx.fillText("⚡ 환장궁합!",655,1340);
 
-  /* 궁합 이미지 */
-  cropImage(ctx,goodImg,115,1365,260,155);
-  cropImage(ctx,badImg,525,1365,260,155);
+ /* 궁합 이미지 */
+cropImage(ctx,goodImg,70,1370,350,170);
+cropImage(ctx,badImg,480,1370,350,170);
 
-  /* 궁합 이름 */
-  ctx.fillStyle="#151515";
-  ctx.font="800 19px Arial";
+/* 궁합 이름 - 이미지 아래 중앙 */
+ctx.fillStyle="#151515";
+ctx.font="800 21px Arial";
+ctx.textAlign="center";
 
-  drawWrapped(ctx,`${good.emoji} ${good.name}`,115,1555,260,27,2);
-  drawWrapped(ctx,`${bad.emoji} ${bad.name}`,525,1555,260,27,2);
+ctx.fillText(`${good.emoji} ${good.name}`,245,1575);
+ctx.fillText(`${bad.emoji} ${bad.name}`,655,1575);
+
+ctx.textAlign="left";
 
   /* FOOTER */
   ctx.strokeStyle="#d9d1c8";
