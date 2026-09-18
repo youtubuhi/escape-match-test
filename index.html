@@ -112,9 +112,81 @@ function renderTypeGrid(){typesGrid.innerHTML='';TYPE_ORDER.forEach(k=>{const r=
 function showType(k){const r=RESULTS[k];result.classList.add('hidden');typeDetail.classList.remove('hidden');typeImage.src=r.image;typeTitle.textContent=`${r.emoji} ${r.name}`;typeOne.textContent=r.one;typeExample.textContent=r.example;fillAnalysis(typeAnalysis,r);scrollTo({top:0,behavior:'smooth'})}function backToMyResult(){typeDetail.classList.add('hidden');result.classList.remove('hidden');scrollTo({top:0,behavior:'smooth'})}
 /* ==================== 공유 부분 ==================== */
 /* 테스트 공유 / 결과 공유 기능 */
-async function sharePayload(title,text,url){if(navigator.share){try{await navigator.share({title,text,url});return}catch(e){}}try{await navigator.clipboard.writeText([text,url].filter(Boolean).join('\n'));alert('공유 링크를 복사했어요.')}catch(e){}}async function shareTest(){trackEvent('test_share');await sharePayload('방탈출 궁합 테스트','나랑 방탈출 잘 맞는 사람은?',cleanUrl())}
-async function shareResultCard(){const r=RESULTS[myType];trackEvent('result_share',{result_type:r.name});await sharePayload(`${r.emoji} ${r.name}`,`내 방탈출 유형은 ${r.name}! 너도 해봐 👀`,cleanUrl())}function resetTest(){history.replaceState(null,'',location.pathname);result.classList.add('hidden');typeDetail.classList.add('hidden');quiz.classList.add('hidden');start.classList.remove('hidden');choices={};myType=null;scrollTo({top:0,behavior:'smooth'})}
-window.addEventListener('load',()=>trackEvent('test_page_view',{page_location:location.href,page_title:document.title}));
+async function sharePayload(title,text,url){if(navigator.share){try{await navigator.share({title,text,url});return}catch(e){}}try{await navigator.clipboard.writeText([text,url].filter(Boolean).join("\n"));alert("공유 링크를 복사했어요.")}catch(e){}}
+async function shareTest(){trackEvent("test_share");await sharePayload("방탈출 궁합 테스트","나랑 방탈출 잘 맞는 사람은?",cleanUrl())}
+
+async function loadImage(src){return new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src})}
+
+function fitImage(ctx,img,x,y,w,h){
+  const s=Math.min(w/img.width,h/img.height),iw=img.width*s,ih=img.height*s;
+  ctx.drawImage(img,x+(w-iw)/2,y+(h-ih)/2,iw,ih)
+}
+
+async function makeShareCanvas(){
+  const r=RESULTS[myType],good=RESULTS[r.good],bad=RESULTS[r.bad];
+  const [mainImg,goodImg,badImg]=await Promise.all([loadImage(r.image),loadImage(good.image),loadImage(bad.image)]);
+  const c=document.createElement("canvas"),ctx=c.getContext("2d");c.width=900;c.height=1500;
+
+  ctx.fillStyle="#f5f1eb";ctx.fillRect(0,0,900,1500);
+  ctx.fillStyle="#151515";ctx.font="800 25px Arial";ctx.fillText("방탈출 인간연구소",60,65);
+  ctx.textAlign="right";ctx.font="18px Arial";ctx.fillText("TEST 003",840,65);ctx.textAlign="left";
+  ctx.fillStyle="#b7202c";ctx.font="800 24px Arial";ctx.fillText("나랑 방탈출 잘 맞는 사람은?",60,120);
+
+  fitImage(ctx,mainImg,60,160,300,400);
+  ctx.fillStyle="#77716b";ctx.font="20px Arial";ctx.fillText("MY TYPE",405,230);
+  ctx.fillStyle="#151515";ctx.font="800 38px Arial";ctx.fillText(`${r.emoji} ${r.name}`,405,290);
+  ctx.fillStyle="#555";ctx.font="24px Arial";
+  const words=r.one.split(" ");let line="",yy=345;
+  words.forEach(w=>{const t=line+w+" ";if(ctx.measureText(t).width>420){ctx.fillText(line,405,yy);line=w+" ";yy+=38}else line=t});ctx.fillText(line,405,yy);
+
+  ctx.strokeStyle="#d9d1c8";ctx.beginPath();ctx.moveTo(60,610);ctx.lineTo(840,610);ctx.stroke();
+  ctx.fillStyle="#77716b";ctx.font="18px Arial";ctx.fillText("MY PROFILE",60,655);
+
+  const letters=myType.split("");
+  const strongest=[...letters].sort((a,b)=>displayScore(b)-displayScore(a))[0];
+  const opposite={E:"I",I:"E",N:"S",S:"N",T:"F",F:"T"}[strongest];
+  [...letters,opposite].forEach((k,i)=>{
+    const v=displayScore(k),y=705+i*82;
+    ctx.fillStyle="#151515";ctx.font="700 22px Arial";ctx.fillText(TRAIT_LABELS[k],60,y);
+    ctx.fillStyle="#ded7cf";ctx.fillRect(330,y-17,430,12);
+    ctx.fillStyle="#b7202c";ctx.fillRect(330,y-17,430*v/100,12);
+    ctx.fillStyle="#151515";ctx.textAlign="right";ctx.fillText(v,840,y);ctx.textAlign="left"
+  });
+
+  ctx.strokeStyle="#d9d1c8";ctx.beginPath();ctx.moveTo(60,1050);ctx.lineTo(840,1050);ctx.stroke();
+  ctx.fillStyle="#77716b";ctx.font="18px Arial";ctx.fillText("MY CHEMISTRY",60,1095);
+
+  ctx.fillStyle="#f2dede";ctx.fillRect(60,1130,370,285);
+  ctx.fillStyle="#ebe6e0";ctx.fillRect(470,1130,370,285);
+
+  fitImage(ctx,goodImg,80,1165,120,160);
+  fitImage(ctx,badImg,490,1165,120,160);
+
+  ctx.fillStyle="#b7202c";ctx.font="800 20px Arial";ctx.fillText("♥ 찰떡궁합!",220,1185);
+  ctx.fillStyle="#151515";ctx.font="800 23px Arial";ctx.fillText(`${good.emoji} ${good.name}`,220,1235);
+
+  ctx.fillStyle="#4e4945";ctx.font="800 20px Arial";ctx.fillText("⚡ 환장궁합!",630,1185);
+  ctx.fillStyle="#151515";ctx.font="800 23px Arial";ctx.fillText(`${bad.emoji} ${bad.name}`,630,1235);
+
+  ctx.strokeStyle="#d9d1c8";ctx.beginPath();ctx.moveTo(60,1450);ctx.lineTo(840,1450);ctx.stroke();
+  ctx.fillStyle="#77716b";ctx.font="17px Arial";ctx.textAlign="center";ctx.fillText("방탈출 인간연구소 · ESCAPE PLAYER LAB",450,1485);
+
+  return c
+}
+
+async function shareResultCard(){
+  const r=RESULTS[myType];trackEvent("result_share",{result_type:r.name});
+  try{
+    const canvas=await makeShareCanvas(),blob=await new Promise(ok=>canvas.toBlob(ok,"image/png"));
+    const file=new File([blob],"escape-chemistry-result.png",{type:"image/png"});
+    if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],text:`내 방탈출 유형은 ${r.name}!`,url:cleanUrl()});return}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="escape-chemistry-result.png";a.click();
+    await navigator.clipboard.writeText(cleanUrl());alert("결과 이미지를 저장했고 테스트 링크를 복사했어요.")
+  }catch(e){await sharePayload(`${r.emoji} ${r.name}`,`내 방탈출 유형은 ${r.name}!`,cleanUrl())}
+}
+
+function resetTest(){history.replaceState(null,"",location.pathname);result.classList.add("hidden");typeDetail.classList.add("hidden");quiz.classList.add("hidden");start.classList.remove("hidden");choices={};myType=null;scrollTo({top:0,behavior:"smooth"})}
+window.addEventListener("load",()=>trackEvent("test_page_view",{page_location:location.href,page_title:document.title}));
 </script>
 
 </body></html>
