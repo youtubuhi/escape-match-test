@@ -103,8 +103,32 @@ function render(){const q=order[step];qnum.innerHTML=`${String(step+1).padStart(
 function choose(id,pick){choices[id]=pick;step++;if(step<9)render();else finish()}
 function classify(){const counts={E:0,I:0,N:0,S:0,T:0,F:0};Object.values(choices).forEach(x=>counts[x]++);return `${counts.E>counts.I?'E':'I'}${counts.N>counts.S?'N':'S'}${counts.T>counts.F?'T':'F'}`}
 const TRAIT_LABELS={E:'NPC랑 냅다 대화',I:'뇌내 시뮬레이션',N:'세계관 떡밥 수집',S:'단서부터 뒤집기',T:'문제풀이 뇌 풀가동',F:'감정선 풀탑승'};
+
+const TYPE_PROFILE={
+IST:{I:82,S:88,T:94},
+ISF:{I:88,S:82,F:84},
+INT:{I:84,N:94,T:88},
+INF:{I:82,N:92,F:95},
+EST:{E:86,S:90,T:92},
+ESF:{E:91,S:78,F:94},
+ENT:{E:91,N:88,T:93},
+ENF:{E:90,N:89,F:95}
+};
+
 function traitCount(k){return Object.values(choices).filter(x=>x===k).length}
-function displayScore(k){const n=traitCount(k);return n===3?92:n===2?72:n===1?28:8}
+
+function displayScore(k){
+  const opposite={E:'I',I:'E',N:'S',S:'N',T:'F',F:'T'};
+  const n=traitCount(k);
+  const base=[12,38,62,88][n];
+
+  if(!myType)return base;
+
+  const profile=TYPE_PROFILE[myType]||{};
+  const target=profile[k] ?? (100-(profile[opposite[k]]??62));
+
+  return Math.round(base*.65+target*.35);
+}
 function renderProfile(){const letters=myType.split('');const strongest=[...letters].sort((a,b)=>displayScore(b)-displayScore(a))[0];const opposite={E:'I',I:'E',N:'S',S:'N',T:'F',F:'T'}[strongest];const rows=[...letters,opposite].map(k=>[TRAIT_LABELS[k],displayScore(k)]);profile.innerHTML=`<div class="profile-head">나의 방탈출 플레이 프로필</div>`+rows.map(([n,v])=>`<div class="score"><div class="score-top"><span class="score-name">${n}</span><strong>${v}</strong></div><div class="meter"><div class="fill" style="width:${v}%"></div></div></div>`).join('')}
 function fillAnalysis(target,r){target.innerHTML=r.analysis.map(x=>`<p>${x}</p>`).join('')+`<p class="closing">${r.closing}</p>`}
 function finish(){quiz.classList.add('hidden');start.classList.add('hidden');typeDetail.classList.add('hidden');result.classList.remove('hidden');myType=classify();const r=RESULTS[myType];trackEvent('test_complete',{result_type:r.name});resultImage.src=r.image;resultTitle.textContent=`${r.emoji} ${r.name}`;resultOne.textContent=r.one;example.textContent=r.example;fillAnalysis(analysis,r);renderProfile();const g=RESULTS[r.good],b=RESULTS[r.bad];goodImg.src=g.image;goodName.textContent=`${g.emoji} ${g.name}`;badImg.src=b.image;badName.textContent=`${b.emoji} ${b.name}`;renderTypeGrid();scrollTo({top:0,behavior:'smooth'})}
