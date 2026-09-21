@@ -47,8 +47,7 @@
   function gtag(){dataLayer.push(arguments)}
   gtag('js', new Date());
   gtag('config', 'G-3GZCCYZ8W0', {
-    anonymize_ip: true,
-    send_page_view: false
+    anonymize_ip: true
   });
 </script>
 <!-- ==================== 조회수 / Analytics 부분 끝 ==================== -->
@@ -395,13 +394,6 @@ function resetTest(){
   myType=null;
   scrollTo({top:0,behavior:"smooth"});
 }
-
-window.addEventListener("load",()=>{
-  trackEvent("test_page_view",{
-    page_location:location.href,
-    page_title:document.title
-  });
-});
 
 </script>
 </body></html>
